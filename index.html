@@ -624,6 +624,18 @@
    ===================================================================== */
 
 const STORE_KEY = 'lvuplog_v1';
+/* ---------- 파이어베이스 ---------- */
+  firebase.initializeApp({
+  apiKey: "AIzaSyDMXPjsOXNavQcROYpVD9DA-VJ1N1LZ_dk",
+  authDomain: "lvup-log.firebaseapp.com",
+  projectId: "lvup-log",
+  storageBucket: "lvup-log.firebasestorage.app",
+  messagingSenderId: "1054958568864",
+  appId: "1:1054958568864:web:c0110ae6c2f70e0d3010c5"
+});
+
+const firestore = firebase.firestore();
+/* ---------- 파이어베이스 끝---------- */ 
 const HEART_COLORS = ['#3a3a3a','#2e7d32','#3b82f6','#ec4899','#22c55e','#f59e0b','#a855f7'];
 const SKILL_PRESET = ['figma','excel','Ai','chatGPT','Claude','PPT','GA4','GTM','Photoshop','Notion'];
 
