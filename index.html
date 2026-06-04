@@ -2467,9 +2467,18 @@ document.addEventListener('click',e=>{
 });
 
 /* ---------- 부팅 ---------- */
-(function boot(){
+(async function boot(){
   load();
-  if(DB && DB.loggedIn){ ensureWorkspaces(); bindWorkspace(); showWorkspaceSelect(); }
+
+  if(DB && DB.auth && DB.auth.id){
+    await loadFromFirestore(DB.auth.id);
+  }
+
+  if(DB && DB.loggedIn){
+    ensureWorkspaces();
+    bindWorkspace();
+    showWorkspaceSelect();
+  }
 })();
 </script>
 
