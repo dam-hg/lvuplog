@@ -671,7 +671,31 @@ let activeChannel = null;
 let replyTarget = null;
 
 /* ---------- 저장/로드 ---------- */
-function save(){ try{ localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }catch(e){ alert('⚠️ 저장 공간이 가득 찼어요!\n계정설정 → 데이터 백업으로 먼저 내보낸 뒤, 첨부 이미지/파일 수를 줄여주세요. (브라우저 저장 한계 약 5MB)'); } }
+function cleanDBForSave(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
+
+ /* ---------- firebase store 저장---------- */
+function save(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+  }catch(e){
+    console.warn('localStorage 저장 실패:', e);
+  }
+
+  if(DB && DB.auth && DB.auth.id){
+    firestore.collection("users").doc(DB.auth.id).set({
+      data: cleanDBForSave(DB),
+      updatedAt: new Date()
+    }).then(()=>{
+      console.log("☁️ Firestore 저장 완료");
+    }).catch(e=>{
+      console.error("Firestore 저장 실패:", e);
+    });
+  }
+}
+ /* ---------- firebase store 저장 끝---------- */
+  
 function load(){
   try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){ DB=null; }
 }
