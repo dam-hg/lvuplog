@@ -2478,7 +2478,7 @@ document.addEventListener('click',e=>{
 (async function boot(){
   load();
 
-  if(DB && DB.auth && DB.auth.id){
+  if(DB && DB.loggedIn && DB.auth && DB.auth.id){
     await loadFromFirestore(DB.auth.id);
   }
 
