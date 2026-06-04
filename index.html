@@ -1302,37 +1302,91 @@ function promotePickFolder(fid){
   renderArchiveEditor();
 }
 
-function openProjectModal(){
-  let color=0, status='진행중';
+function openProjectModal(id=null){
+  const edit = id ? DB.projects.find(p=>p.id===id) : null;
+
   modal(`
-    <h3>새 프로젝트</h3>
-    <input id="mProjName" placeholder="프로젝트 이름 (예: 푸른들 여름 캠페인)">
+    <h3>${edit ? '프로젝트 수정' : '새 프로젝트'}</h3>
+    <input id="mProjName" placeholder="프로젝트 이름" value="${edit ? esc(edit.name) : ''}">
+
     <div>상태</div>
     <div class="row" id="mStatus">
-      <div class="opt sel" data-v="진행중">진행중</div>
-      <div class="opt" data-v="완료">완료</div>
-      <div class="opt" data-v="보류">보류</div>
+      ${['진행중','완료','보류'].map(s=>`
+        <div class="opt ${(edit ? edit.status : '진행중')===s ? 'sel' : ''}" data-v="${s}">
+          ${s}
+        </div>
+      `).join('')}
     </div>
+
     <div class="actions">
       <button class="btn-cancel" onclick="closeModal()">취소</button>
-      <button class="btn-primary" onclick="createProject()">생성 (+50 XP)</button>
+
+      ${
+        edit
+        ? `<button class="btn-primary" onclick="updateProject('${id}')">저장</button>`
+        : `<button class="btn-primary" onclick="createProject()">생성 (+50 XP)</button>`
+      }
     </div>
   `);
-  document.querySelectorAll('#mStatus .opt').forEach(o=>o.onclick=()=>{
-    document.querySelectorAll('#mStatus .opt').forEach(x=>x.classList.remove('sel'));
-    o.classList.add('sel');
+
+  document.querySelectorAll('#mStatus .opt').forEach(o=>{
+    o.onclick=()=>{
+      document.querySelectorAll('#mStatus .opt').forEach(x=>x.classList.remove('sel'));
+      o.classList.add('sel');
+    };
   });
 }
+
 function createProject(){
   const name=document.getElementById('mProjName').value.trim();
   if(!name){ alert('이름을 입력하세요.'); return; }
+
   const status=document.querySelector('#mStatus .opt.sel').dataset.v;
-  const p={ id:uid(), name, status, xp:0, channelIds:[], createdAt:Date.now() };
-  DB.projects.push(p); save();
+
+  const p={
+    id:uid(),
+    name,
+    status,
+    xp:0,
+    channelIds:[],
+    createdAt:Date.now()
+  };
+
+  DB.projects.push(p);
+  save();
+
   closeModal();
-  addXP(XP.project, p.id); playSound('create'); comboHit();
+  addXP(XP.project,p.id);
+  playSound('create');
+  comboHit();
+
   renderProjects();
 }
+
+function updateProject(id){
+  const p = DB.projects.find(x=>x.id===id);
+
+  if(!p) return;
+
+  const name=document.getElementById('mProjName').value.trim();
+
+  if(!name){
+    alert('이름을 입력하세요.');
+    return;
+  }
+
+  p.name = name;
+  p.status = document.querySelector('#mStatus .opt.sel').dataset.v;
+
+  save();
+  closeModal();
+
+  renderProjectDetail();
+
+  toast('프로젝트 수정 완료 ✅');
+}
+
+  
 
 /* ======================= 성과 대시보드 ======================= */
 let dashMetric=null, dashPeriod='day';
@@ -1476,6 +1530,7 @@ function renderProjectDetail(){
         <span class="status ${stCls}">${p.status}</span>
         <span class="spacer"></span>
         <button class="nav-btn" style="padding:11px 18px" onclick="openPortfolioBuilder()">📄 포트폴리오</button>
+        <button class="nav-btn" style="padding:11px 18px" onclick="openProjectModal('${p.id}')">프로젝트 수정</button>
         <button class="add-archive" onclick="openFolderModal()">+ 작업 영역 추가</button>
       </div>
       <div class="detail-status">
