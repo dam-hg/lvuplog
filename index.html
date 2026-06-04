@@ -2339,9 +2339,26 @@ function saveAccount(){
   if(pw) DB.auth.pw=pw;
   save(); closeModal(); toast('저장되었습니다.'); renderProjects();
 }
-function resetAll(){
-  if(!confirm('모든 데이터를 삭제하고 처음으로 돌아갑니다. 계속할까요?'))return;
-  localStorage.removeItem(STORE_KEY); location.reload();
+
+ /* ======================= 전체 초기화 ======================= */ 
+async function resetAll(){
+  if(!confirm('모든 데이터를 삭제하고 처음으로 돌아갑니다. 계속할까요?')) return;
+
+  const userId = DB && DB.auth && DB.auth.id;
+
+  try{
+    if(userId){
+      await firestore.collection("users").doc(userId).delete();
+      console.log("☁️ Firestore 데이터 삭제 완료");
+    }
+
+    localStorage.removeItem(STORE_KEY);
+    alert('전체 초기화 완료! 처음 화면으로 돌아갑니다.');
+    location.reload();
+  }catch(e){
+    console.error(e);
+    alert('초기화 중 문제가 생겼어요. 다시 시도해주세요.');
+  }
 }
 
 /* ======================= 유틸 ======================= */
