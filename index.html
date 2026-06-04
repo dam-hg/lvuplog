@@ -615,7 +615,7 @@
 
 <div class="copyright">©hglee</div>
 
-<script type="module">
+<script>
 /* =====================================================================
    LVUP.log — 단일 파일 업무 기록 + 게임화 웹앱 (프로토타입)
    데이터는 브라우저 localStorage에 저장됩니다.
@@ -2327,5 +2327,30 @@ document.addEventListener('click',e=>{
   if(DB && DB.loggedIn){ ensureWorkspaces(); bindWorkspace(); showWorkspaceSelect(); }
 })();
 </script>
+  
+/* ---------- firebase ---------- */
+  <script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDMXPjsOXNavQcROYpVD9DA-VJ1N1LZ_dk",
+  authDomain: "lvup-log.firebaseapp.com",
+  projectId: "lvup-log",
+  storageBucket: "lvup-log.firebasestorage.app",
+  messagingSenderId: "1054958568864",
+  appId: "1:1054958568864:web:c0110ae6c2f70e0d3010c5"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window.db = db;
+
+console.log("🔥 Firebase 연결 성공");
+</script>
+  /* ---------- firebase end ---------- */
+
+  
 </body>
 </html>
