@@ -759,7 +759,17 @@ async function doLogin(){
 }
 
   
-function logout(){ DB.loggedIn=false; save(); location.reload(); }
+function logout(){
+  if(DB) DB.loggedIn = false;
+
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+  }catch(e){
+    console.warn('로그아웃 localStorage 저장 실패:', e);
+  }
+
+  location.reload();
+}
 
 /* ---------- 워크스페이스 ---------- */
 function ensureWorkspaces(){
