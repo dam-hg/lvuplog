@@ -1579,6 +1579,52 @@ function createFolder(){
   p.folders.push({id:uid(),name,status:'진행중',createdAt:Date.now(),archives:[]});
   save(); closeModal(); renderProjectDetail(); toast('작업 영역이 생겼어요 📁');
 }
+
+  /* ---- 작업영역 수정 ---- */  
+function openFolderEditModal(fid){
+  const p = currentProject();
+  const f = p.folders.find(x => x.id === fid);
+
+  if(!f) return;
+
+  modal(`
+    <h3>작업영역 수정</h3>
+
+    <input id="mFolderEditName" value="${esc(f.name)}">
+
+    <div class="actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-primary" onclick="updateFolderName('${fid}')">저장</button>
+    </div>
+  `);
+}
+
+function updateFolderName(fid){
+  const p = currentProject();
+  const f = p.folders.find(x => x.id === fid);
+
+  if(!f) return;
+
+  const name = document.getElementById('mFolderEditName').value.trim();
+
+  if(!name){
+    alert('이름을 입력하세요.');
+    return;
+  }
+
+  f.name = name;
+
+  save();
+
+  closeModal();
+
+  renderProjectDetail();
+
+  toast('작업영역 수정 완료 ✅');
+}
+
+/* ---- 작업영역 수정 끝 ---- */  
+  
 function openFolder(fid){ currentFolderId=fid; renderFolder(); }
 function setFolderStatus(s){ const f=currentFolder(); if(!f)return; f.status=s; save(); renderFolder(); }
 function renderFolder(){
@@ -1609,6 +1655,7 @@ function renderFolder(){
         <h2>${esc(f.name)}</h2>
         <span class="crumb">프로젝트 › ${esc(p.name)} › ${esc(f.name)}</span>
         <span class="spacer"></span>
+        <span class="del" onclick="openFolderEditModal('${f.id}')" style="cursor:pointer;color:var(--green-d)">영역 수정</span>
         <span class="del" onclick="deleteFolder('${f.id}')" style="cursor:pointer">영역 삭제</span>
         <button class="add-archive" onclick="openArchiveEditor(null)">+ 완성본 기록</button>
       </div>
