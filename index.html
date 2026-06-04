@@ -635,6 +635,25 @@ const STORE_KEY = 'lvuplog_v1';
 });
 
 const firestore = firebase.firestore();
+
+  window.firestore = firestore;
+
+async function firebaseTest() {
+  try {
+    await firestore.collection("test").add({
+      message: "hello lvup-log",
+      createdAt: new Date()
+    });
+
+    console.log("🔥 Firestore 저장 성공");
+    alert("Firestore 연결 성공!");
+  } catch (e) {
+    console.error(e);
+    alert("Firestore 연결 실패");
+  }
+}
+
+window.firebaseTest = firebaseTest;
 /* ---------- 파이어베이스 끝---------- */ 
 const HEART_COLORS = ['#3a3a3a','#2e7d32','#3b82f6','#ec4899','#22c55e','#f59e0b','#a855f7'];
 const SKILL_PRESET = ['figma','excel','Ai','chatGPT','Claude','PPT','GA4','GTM','Photoshop','Notion'];
