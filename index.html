@@ -675,7 +675,10 @@ function cleanDBForSave(obj){
   return JSON.parse(JSON.stringify(obj));
 }
 
- /* ---------- firebase store 저장---------- */
+/* ---------- firebase store 저장---------- */
+
+let saveTimer = null;
+
 function save(){
   try{
     localStorage.setItem(STORE_KEY, JSON.stringify(DB));
@@ -683,18 +686,23 @@ function save(){
     console.warn('localStorage 저장 실패:', e);
   }
 
-  if(DB && DB.auth && DB.auth.id){
-    firestore.collection("users").doc(DB.auth.id).set({
-      data: cleanDBForSave(DB),
-      updatedAt: new Date()
-    }).then(()=>{
-      console.log("☁️ Firestore 저장 완료");
-    }).catch(e=>{
-      console.error("Firestore 저장 실패:", e);
-    });
-  }
+  clearTimeout(saveTimer);
+
+  saveTimer = setTimeout(()=>{
+    if(DB && DB.auth && DB.auth.id){
+      firestore.collection("users").doc(DB.auth.id).set({
+        data: cleanDBForSave(DB),
+        updatedAt: new Date()
+      }).then(()=>{
+        console.log("☁️ Firestore 저장 완료");
+      }).catch(e=>{
+        console.error("Firestore 저장 실패:", e);
+      });
+    }
+  }, 1500);
 }
- /* ---------- firebase store 저장 끝---------- */
+
+/* ---------- firebase store 저장 끝---------- */
 
   /* ---------- firebase 로그인 시 데이터 불러오기---------- */ 
 function load(){
