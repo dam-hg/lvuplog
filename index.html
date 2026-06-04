@@ -695,33 +695,70 @@ function save(){
   }
 }
  /* ---------- firebase store 저장 끝---------- */
-  
+
+  /* ---------- firebase 로그인 시 데이터 불러오기---------- */ 
 function load(){
   try{ DB = JSON.parse(localStorage.getItem(STORE_KEY)); }catch(e){ DB=null; }
 }
+
+async function loadFromFirestore(id){
+  try{
+    const doc = await firestore.collection("users").doc(id).get();
+
+    if(doc.exists && doc.data() && doc.data().data){
+      DB = doc.data().data;
+      localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+      console.log("☁️ Firestore 불러오기 성공");
+      return true;
+    }
+
+    console.log("Firestore에 저장된 데이터 없음");
+    return false;
+  }catch(e){
+    console.error("Firestore 불러오기 실패:", e);
+    return false;
+  }
+}
+ /* ---------- firebase 로그인 시 데이터 불러오기 ---------- */ 
+  
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 
 const DEFAULT_PRESETS=['광고소재','랜딩페이지','상세페이지','블로그/SEO','광고캠페인','GTM','성과분석'];
 function newWorkspace(name){ return { id:uid(), name:name||'내 워크스페이스', xp:0, skills:['figma','excel','Ai','chatGPT','Claude'], folderPresets:[...DEFAULT_PRESETS], projects:[], channels:[] }; }
 
 /* ---------- 로그인 ---------- */
-function doLogin(){
+async function doLogin(){
   const id = document.getElementById('loginId').value.trim();
   const pw = document.getElementById('loginPw').value.trim();
   if(!id || !pw){ alert('아이디와 비밀번호를 입력하세요.'); return; }
-  load();
+
+  await loadFromFirestore(id);
+
   if(!DB){
-    // 신규 계정 생성
+    load();
+  }
+
+  if(!DB){
     const ws=newWorkspace('내 워크스페이스');
     DB = { auth:{ id, pw }, user:{ name:id }, workspaces:[ws], currentWorkspaceId:ws.id, loggedIn:true };
     ensureWorkspaces(); bindWorkspace(ws.id); save();
     showWorkspaceSelect();
     return;
   }
-  if(DB.auth.id!==id || DB.auth.pw!==pw){ alert('아이디 또는 비밀번호가 일치하지 않습니다.'); return; }
-  DB.loggedIn = true; ensureWorkspaces(); bindWorkspace(); save();
+
+  if(DB.auth.id!==id || DB.auth.pw!==pw){
+    alert('아이디 또는 비밀번호가 일치하지 않습니다.');
+    return;
+  }
+
+  DB.loggedIn = true;
+  ensureWorkspaces();
+  bindWorkspace();
+  save();
   showWorkspaceSelect();
 }
+
+  
 function logout(){ DB.loggedIn=false; save(); location.reload(); }
 
 /* ---------- 워크스페이스 ---------- */
