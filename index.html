@@ -1734,16 +1734,57 @@ function onPickFiles(input){
 }
 function removeFile(i){ syncDraft(); draft.files.splice(i,1); renderArchiveEditor(); }
 function downloadFile(i){ const f=draft.files[i]; if(!f)return; const a=document.createElement('a'); a.href=f.data; a.download=f.name; a.click(); }
-function onPickImages(input){
+
+/* ======================= Cloudinary ======================= */
+
+async function uploadToCloudinary(file){
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', 'lvup-log');
+
+  const res = await fetch('https://api.cloudinary.com/v1_1/dp7shsjb9/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+
+  if(!res.ok){
+    throw new Error('Cloudinary 업로드 실패');
+  }
+
+  const data = await res.json();
+  return data.secure_url;
+}
+
+async function onPickImages(input){
   syncDraft();
-  const files=Array.from(input.files); let pending=files.length; if(!pending)return;
-  files.forEach(f=>{ const r=new FileReader(); r.onload=e=>compressImg(e.target.result,d=>{ draft.images.push(d); if(--pending===0){ if(previewIdx==null)previewIdx=0; renderArchiveEditor(); } }); r.readAsDataURL(f); });
+
+  const files = Array.from(input.files);
+  if(!files.length) return;
+
+  try {
+    for(const f of files){
+      if(!f.type.startsWith('image/')){
+        alert(`'${f.name}'은 이미지 파일이 아니에요.`);
+        continue;
+      }
+
+      const url = await uploadToCloudinary(f);
+      draft.images.push(url);
+    }
+
+    if(previewIdx == null && draft.images.length > 0) previewIdx = 0;
+    renderArchiveEditor();
+    toast('이미지가 클라우드에 업로드됐어요 ☁️');
+  } catch(e) {
+    console.error(e);
+    alert('이미지 업로드 중 문제가 생겼어요.');
+  } finally {
+    input.value = '';
+  }
 }
-function compressImg(dataUrl,cb){
-  const img=new Image();
-  img.onload=()=>{ const max=1100; let w=img.width,h=img.height; if(w>max||h>max){const s=Math.min(max/w,max/h);w=Math.round(w*s);h=Math.round(h*s);} const cv=document.createElement('canvas'); cv.width=w;cv.height=h; cv.getContext('2d').drawImage(img,0,0,w,h); try{cb(cv.toDataURL('image/jpeg',0.72));}catch(e){cb(dataUrl);} };
-  img.onerror=()=>cb(dataUrl); img.src=dataUrl;
-}
+
+/* ======================= Cloudinary 끝 ======================= */
+  
 function saveArchive(){
   syncDraft();
   if(!draft.title.trim()){ alert('제목을 입력하세요.'); return; }
